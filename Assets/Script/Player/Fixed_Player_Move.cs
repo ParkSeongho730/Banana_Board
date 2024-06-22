@@ -16,11 +16,6 @@ public class Fixed_Player_Move : MonoBehaviour
     private Vector2 rightDashDir;
     private bool isRight = true;
 
-    // 커맨드 관련
-    [SerializeField]
-    private Command_Manager CommandManager;
-    private bool isCommanding;
-
     Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
 
@@ -32,8 +27,6 @@ public class Fixed_Player_Move : MonoBehaviour
 
         leftDashDir = new Vector2(-1, 0);
         rightDashDir = new Vector2(1, 0);
-
-        isCommanding = false;
     }
 
     // Update is called once per frame
@@ -42,7 +35,6 @@ public class Fixed_Player_Move : MonoBehaviour
         Jump();
         Dash();
         Squat();
-        command();
     }
 
     void FixedUpdate()
@@ -53,9 +45,6 @@ public class Fixed_Player_Move : MonoBehaviour
 
     void Move()
     {
-        // 커맨드를 입력 받는 중이면 리턴
-        if (isCommanding) return;
-
         Vector2 moveDir;
         float horizontalInput = Input.GetAxis("Horizontal");
 
@@ -75,9 +64,6 @@ public class Fixed_Player_Move : MonoBehaviour
 
     void Jump()
     {
-        // 커맨드를 입력 받는 중이면 리턴
-        if (isCommanding) return;
-
         if (Input.GetKeyDown(KeyCode.C))
         {
             rigid.velocity = new Vector2(rigid.velocity.x, 0);
@@ -87,9 +73,6 @@ public class Fixed_Player_Move : MonoBehaviour
 
     void Dash()
     {
-        // 커맨드를 입력 받는 중이면 리턴
-        if (isCommanding) return;
-
         if (Input.GetKeyDown(KeyCode.Z))
         {
             if (isRight)
@@ -115,9 +98,6 @@ public class Fixed_Player_Move : MonoBehaviour
 
     void Squat()
     {
-        // 커맨드를 입력 받는 중이면 리턴
-        if (isCommanding) return;
-
         if (Input.GetKeyDown(KeyCode.X))
         {
             gameObject.transform.localScale = new Vector2(gameObject.transform.localScale.x, 0.5f);
@@ -128,26 +108,5 @@ public class Fixed_Player_Move : MonoBehaviour
             gameObject.transform.position = new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.25f);
             gameObject.transform.localScale = new Vector2(gameObject.transform.localScale.x, 1);
         }
-    }
-
-    void command()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            if (!isCommanding) spriteRenderer.color = new Color(1, 1, 1, 0.5f);
-            else spriteRenderer.color = new Color(1, 1, 1, 1);  // 플레이어 스프라이트 변경시 필요없음
-
-            isCommanding = !isCommanding;
-            CommandManager.setIsCommanding(isCommanding);
-        }
-    }
-    public void setIsCommanding_false()
-    {
-        Invoke("__setIsCommanding_false", 0.1f);
-    }
-    void __setIsCommanding_false()
-    {
-        spriteRenderer.color = new Color(1, 1, 1, 1);  // 플레이어 스프라이트 변경시 필요없음
-        isCommanding = false;
     }
 }
