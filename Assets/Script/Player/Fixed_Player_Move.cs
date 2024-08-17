@@ -6,6 +6,7 @@ public class Fixed_Player_Move : MonoBehaviour
 {
     // 이동 및 점프
     public float maxSpeed;
+    private float __maxSpeed;
     public float moveSpeed;
     public float stopSpeed;
     public float jumpPower;
@@ -24,7 +25,7 @@ public class Fixed_Player_Move : MonoBehaviour
     float raycastDistance = 0.15f; //레이케스트의 길이
     int targetLayer; //벽 레이어마스크
     bool isWall; //플레이어가 벽에 붙어 있는지 확인
-    public Bounds bounds;
+    private Bounds bounds;
 
     // 대쉬 관련
     [SerializeField]
@@ -35,11 +36,19 @@ public class Fixed_Player_Move : MonoBehaviour
     private Vector2 leftDashDir;
     private Vector2 rightDashDir;
     private int isRight = 1;
+    private bool isDashing = false;
 
     // 커맨드 관련
     [SerializeField]
     private Command_Manager CommandManager;
     private bool isCommanding;
+
+    // 장애물 관련
+    [SerializeField]
+    private bool isSlow = false;
+
+    // 스탯 관련
+    private Stats stats;
 
     Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
@@ -48,9 +57,11 @@ public class Fixed_Player_Move : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        stats = GetComponent<Stats>();
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
+        __maxSpeed = maxSpeed;
         isSquating = false;
         isGround = false;
         canMove = true;
@@ -58,7 +69,7 @@ public class Fixed_Player_Move : MonoBehaviour
 
         bounds = GetComponent<BoxCollider2D>().bounds;
 
-        targetLayer = 1 << LayerMask.NameToLayer("Wall");
+        targetLayer = 1 << LayerMask.NameToLayer("ClimbableWall");
 
         leftDashDir = new Vector2(-1, 0);
         rightDashDir = new Vector2(1, 0);
@@ -67,6 +78,7 @@ public class Fixed_Player_Move : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 벽타기
         isWall = Physics2D.BoxCast(transform.position, bounds.size, 0f, Vector2.right * isRight, raycastDistance, targetLayer);
         //중심점, 사이즈, 로테이션, 방향, 길이, 감지할레이어
         if (isWall)
@@ -132,19 +144,22 @@ public class Fixed_Player_Move : MonoBehaviour
         {
             moveDir = new Vector3(horizontalInput, 0, 0);
 
-            rigid.AddForce(moveDir * moveSpeed, ForceMode2D.Impulse);
-            if (rigid.velocity.x > maxSpeed)
+            if (isSlow && __maxSpeed >= maxSpeed)
             {
-                rigid.velocity = new Vector2(maxSpeed, rigid.velocity.y);
+                __maxSpeed = maxSpeed / 2.0f;
             }
-            else if (rigid.velocity.x < maxSpeed * (-1))
+
+            rigid.AddForce(moveDir * moveSpeed, ForceMode2D.Impulse);
+            if (rigid.velocity.x > __maxSpeed)
             {
-                rigid.velocity = new Vector2(maxSpeed * (-1), rigid.velocity.y);
+                rigid.velocity = new Vector2(__maxSpeed, rigid.velocity.y);
+            }
+            else if (rigid.velocity.x < __maxSpeed * (-1))
+            {
+                rigid.velocity = new Vector2(__maxSpeed * (-1), rigid.velocity.y);
             }
 
             //transform.Translate(moveDir * moveSpeed * Time.deltaTime);  //추후 velocity로 변경 예정
-
-            
         }
         else if (horizontalInput == 0.0f)
         {
@@ -187,10 +202,13 @@ public class Fixed_Player_Move : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isRight == 1)
-                StartCoroutine(__Dash(rightDashDir));
-            else
-                StartCoroutine(__Dash(leftDashDir));
+            if(isDashing == false)
+            {
+                if (isRight == 1)
+                    StartCoroutine(__Dash(rightDashDir));
+                else
+                    StartCoroutine(__Dash(leftDashDir));
+            }
         }
     }
 
@@ -198,6 +216,9 @@ public class Fixed_Player_Move : MonoBehaviour
     {
         if (dashCount > 0)
         {
+            isDashing = true;
+            __maxSpeed = maxSpeed * 1.5f; 
+
             dashCount--;
             rigid.gravityScale = 0;
             rigid.velocity = new Vector2(rigid.velocity.x, 0);
@@ -213,10 +234,11 @@ public class Fixed_Player_Move : MonoBehaviour
             spriteRenderer.color = new Color(1, 1, 1, 1);
             rigid.gravityScale = 1;
 
-            if (isGround) dashCount = 1;
-
             // 대쉬 쿨타임
             yield return new WaitForSeconds(dashCooldown);
+
+            __maxSpeed = maxSpeed;
+            isDashing = false;
         }
     }
 
@@ -266,6 +288,14 @@ public class Fixed_Player_Move : MonoBehaviour
     public int getIsRight() { return isRight; }
 
     public void setCanMove(bool x) { canMove = x; }
+    public void setIsSlow(bool x)
+    { 
+        if(x == false)
+        {
+            __maxSpeed = maxSpeed;
+        }
+        isSlow = x;
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -275,6 +305,20 @@ public class Fixed_Player_Move : MonoBehaviour
             dashCount = 1;
             jumpCount = 2;
         }
+        else if (collision.gameObject.tag == "DamagedObstacle")
+        {
+            stats.decreaseHp();
+            StartCoroutine(getDamaged());
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Platform")
+        {
+            isGround = true;
+            dashCount = 1;
+        }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -283,5 +327,19 @@ public class Fixed_Player_Move : MonoBehaviour
         {
             isGround = false;
         }
+    }
+
+    IEnumerator getDamaged()
+    {
+        setCanMove(false);
+        spriteRenderer.color = new Color(1, 1, 1, 0.5f);
+
+        rigid.velocity = new Vector2(0, 0);
+        rigid.AddForce(new Vector2(-7, 10), ForceMode2D.Impulse);
+
+        yield return new WaitForSeconds(1.0f);
+
+        spriteRenderer.color = new Color(1, 1, 1, 1);
+        setCanMove(true);
     }
 }

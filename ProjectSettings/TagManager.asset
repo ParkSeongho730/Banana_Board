@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Platform
   - PowerDashWall
+  - ClimbableWall
+  - ParabolicJump
+  - DamagedObstacle
   layers:
   - Default
   - TransparentFX
@@ -21,9 +24,9 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - Wall
+  - FlyObstacle
+  - ParabolicJumpBase
+  - ClimbableWall
   - Player
   - 
   - 

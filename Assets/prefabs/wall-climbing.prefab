@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 6446950459292657302}
   m_Layer: 16
   m_Name: wall-climbing
-  m_TagString: Platform
+  m_TagString: ClimbableWall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -781,12 +781,6 @@ CompositeCollider2D:
       - X: 790000000
         Y: -50000000
     - - X: 820000000
-        Y: 19999900
-      - X: 819999959
-        Y: 19999900
-      - X: 819999900
-        Y: 19999959
-      - X: 819999900
         Y: 30000000
       - X: 810000000
         Y: 30000000
@@ -801,7 +795,7 @@ CompositeCollider2D:
       - {x: 78, y: 41.999973}
       - {x: 78.00003, y: -5}
     - - {x: 81.99997, y: -7}
-      - {x: 81.99996, y: 3}
+      - {x: 81.99997, y: 3}
       - {x: 81, y: 2.999971}
       - {x: 81.00003, y: -7}
   m_VertexDistance: 0.0005

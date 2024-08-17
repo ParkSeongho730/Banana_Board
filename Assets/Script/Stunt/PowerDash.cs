@@ -5,6 +5,7 @@ using UnityEngine;
 public class PowerDash : MonoBehaviour
 {
     public float dashPower = 20.0f;
+    private float dashTime = 0.5f;
     private bool isDashing = false;
 
     private Vector2 leftDashDir;
@@ -26,7 +27,7 @@ public class PowerDash : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void DoPowerDash()
@@ -42,27 +43,33 @@ public class PowerDash : MonoBehaviour
         player.setCanMove(false);
         isDashing = true;
 
-        rigid.gravityScale = 0;
         rigid.velocity = Vector2.zero;
 
         // 대쉬
         rigid.AddForce(dashDir * dashPower, ForceMode2D.Impulse);
 
-        rigid.gravityScale = 1;
+        yield return new WaitForSeconds(dashTime);
 
-        yield return null;
+        isDashing = false;
+        player.setCanMove(true);
+
+        //yield return null;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "PowerDashWall")
         {
-            Destroy(collision.gameObject);
-            if (player.getIsRight() == 1)
-                StartCoroutine(__Dash(rightDashDir));
-            else
-                StartCoroutine(__Dash(leftDashDir));
-            player.setCanMove(true);
+            if (isDashing == true)
+            {
+                Destroy(collision.gameObject);
+                if (player.getIsRight() == 1)
+                    StartCoroutine(__Dash(rightDashDir));
+                else
+                    StartCoroutine(__Dash(leftDashDir));
+                isDashing = false;
+                player.setCanMove(true);
+            }
         }
     }
 }

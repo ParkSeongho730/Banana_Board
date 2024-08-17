@@ -1,11 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class Stats : MonoBehaviour
 {
-    public Stats playerStats;
+    public uint hp;
 
     // Start is called before the first frame update
     void Start()
@@ -16,9 +15,13 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(playerStats.getHp() <= 0)
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        
     }
+
+    public void decreaseHp()
+    {
+        if (hp > 0) hp--;
+    }
+
+    public uint getHp() { return hp; }
 }

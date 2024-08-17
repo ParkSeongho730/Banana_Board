@@ -22,6 +22,7 @@ public class Command_Manager : MonoBehaviour
     private PowerDash powerdash;
 
     private bool isCommanding;
+    private float timer = 0.0f;
 
     [SerializeField]
     private Queue<byte> commandQueue = new Queue<byte>();
@@ -35,6 +36,20 @@ public class Command_Manager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(isCommanding)
+        {
+            timer += Time.deltaTime;
+
+            if(timer >= 3.0f)
+            {
+                Debug.Log("커맨드 입력시간 종료");
+                commandQueue.Clear();
+                isCommanding = false;
+                player.setIsCommanding_false();
+                timer = 0.0f;
+            }
+        }
+
         inputCommand();
         //printQueue();
         checkCommandQueue();
@@ -117,7 +132,7 @@ public class Command_Manager : MonoBehaviour
                 commandQueue.Clear();
                 isCommanding = false;
                 player.setIsCommanding_false();
-                parabolicJump.StartJump();
+                parabolicJump.CheckObstacle();
             }
             else if (commands[0] == Right &&
                 commands[1] == Up &&
@@ -127,7 +142,7 @@ public class Command_Manager : MonoBehaviour
                 commandQueue.Clear();
                 isCommanding = false;
                 player.setIsCommanding_false();
-                fly.DoFly();
+                fly.CheckObstacle();
             }
             else if (commands[0] == Right &&
                 commands[1] == Right &&

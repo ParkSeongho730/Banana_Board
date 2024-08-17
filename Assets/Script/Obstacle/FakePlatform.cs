@@ -1,12 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class FakePlatform : MonoBehaviour
 {
-    public Stats playerStats;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -16,9 +13,14 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(playerStats.getHp() <= 0)
+
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Player")
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            Destroy(gameObject, 1.0f);
         }
     }
 }

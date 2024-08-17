@@ -11,6 +11,10 @@ public class Fly : MonoBehaviour
     private bool isFlying;
     private bool isJumping;
 
+    private int targetLayer;
+    private float raycastDistance = 3.0f;
+    private RaycastHit2D isCommandObstacle;
+
     private Fixed_Player_Move player;
     private Rigidbody2D rigid;
 
@@ -19,6 +23,8 @@ public class Fly : MonoBehaviour
     {
         player = GetComponent<Fixed_Player_Move>();
         rigid = GetComponent<Rigidbody2D>();
+
+        targetLayer = 1 << LayerMask.NameToLayer("FlyObstacle");
 
         isJumping = false;
         isFlying = false;
@@ -36,7 +42,7 @@ public class Fly : MonoBehaviour
 
         if (isFlying)
         {
-            if(Vector2.Distance(new Vector2(transform.position.x, 0), new Vector2(targetPosition.x, 0)) < 0.1f)
+            if (transform.position.x > targetPosition.x)
             {
                 isFlying = false;
                 rigid.velocity = Vector2.zero;
@@ -49,6 +55,24 @@ public class Fly : MonoBehaviour
             }
         }
         
+    }
+
+    public void CheckObstacle()
+    {
+        isCommandObstacle = Physics2D.Raycast(transform.position, Vector2.right, raycastDistance, targetLayer);
+        if (isCommandObstacle.collider != null)
+        {
+            GameObject Obstacle = isCommandObstacle.collider.gameObject;
+            Transform ObstacleTransform = Obstacle.transform;
+            Transform target = ObstacleTransform.Find("1");
+            targetPosition = new Vector2(target.position.x, target.position.y);
+
+            DoFly();
+        }
+        else
+        {
+            return;
+        }
     }
 
     public void DoFly()
